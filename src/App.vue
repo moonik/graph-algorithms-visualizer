@@ -1,11 +1,13 @@
 <template>
   <div id="app">
-    <button v-on:click="dfsSearch()">Click</button>
+    <button v-on:click="dfsSearch()">DFS</button>
+    <button v-on:click="bfsSearch()">BFS</button>
+    <button v-on:click="reset()">Reset</button>
     <table class="table table-bordered">
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
-            <div class="visited" :style="{'-webkit-animation-delay': getDelay(col), 'animation-delay': getDelay(col)}" v-if="clicked && wasVisited(col)">{{ col }}</div>
+            <div class="visited" :style="setVisitedStyle(col)" v-if="clicked && wasVisited(col)">{{ col }}</div>
             <div v-else> {{ col }} </div>
           </td>
         </tr>
@@ -60,7 +62,16 @@ export default {
           this.graph.set(col, adj);
         }
       }
-      console.log(this.graph);
+    },
+
+    reset() {
+      this.clicked = false;
+      this.toColor = [];
+    },
+
+    setVisitedStyle(col) {
+      const delay = this.getDelay(col);
+      return {'-webkit-animation-delay': delay, 'animation-delay': delay};
     },
 
     dfsSearch() {
@@ -110,7 +121,6 @@ export default {
 
       while (this.toVisit.length > 0) {
         const v = this.toVisit.shift();
-        this.$set(this.toColor, this.index++, v);
         if (v === target) {
           return true;
         }
@@ -120,6 +130,7 @@ export default {
           if (!this.visited.has(u)) {
             this.toVisit.push(u);
             this.visited.add(u);
+            this.$set(this.toColor, this.index++, u);
           }
         }
       }
