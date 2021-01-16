@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <button v-on:click="bfsSearch()">Click</button>
+    <button v-on:click="dfsSearch()">Click</button>
     <table class="table table-bordered">
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
@@ -21,10 +21,9 @@ export default {
   components: {
   },
   created() {
-    for (let i = 0; i < 12; i++) {
-      this.graph.set(i, [0,1,2,3,4,5,6,7,8,9,10,11]);
-    }
+    this.initGraph();
   },
+
   data() {
     return {
       visited: new Set(),
@@ -34,9 +33,36 @@ export default {
       toColor: [],
       clicked: false,
       index: 0,
+      neighbors: [0, 1, -1],
     }
   },
+
   methods: {
+    initGraph() {
+      for (const iRow in this.rows) {
+        const row = parseInt(iRow);
+        for (const iColumn in this.cols[row]) {
+          let adj = [];
+          const col = parseInt(this.cols[row][iColumn]);
+
+          for (const i in this.neighbors) {
+            for (const j in this.neighbors) {
+              const r = parseInt(this.neighbors[i]) + parseInt(iRow);
+              const c = parseInt(this.neighbors[j]) + parseInt(iColumn);
+
+              if (!(r === row && c === col)) {
+                if (r >= 0 && c >= 0 && r < this.cols.length && c < this.cols[r].length) {
+                  adj.push(this.cols[r][c]);
+                }
+              }
+            }
+          }
+          this.graph.set(col, adj);
+        }
+      }
+      console.log(this.graph);
+    },
+
     dfsSearch() {
       this.clicked = true;
       this.visited = new Set();
@@ -60,7 +86,7 @@ export default {
       const edges = this.graph.get(parseInt(v));
 
       for (const u in edges) {
-        let e = parseInt(u);
+        let e = parseInt(edges[u]);
         if (!this.visited.has(e)) {
           this.trackNodeAndColor(e);
           if (this.dfs(e, target)) {
@@ -85,13 +111,12 @@ export default {
       while (this.toVisit.length > 0) {
         const v = this.toVisit.shift();
         this.$set(this.toColor, this.index++, v);
-
         if (v === target) {
           return true;
         }
 
         for (const e in this.graph.get(v)) {
-          const u = parseInt(e);
+          const u = parseInt(this.graph.get(v)[e]);
           if (!this.visited.has(u)) {
             this.toVisit.push(u);
             this.visited.add(u);
