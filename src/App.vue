@@ -121,6 +121,8 @@ export default {
 
       while (this.toVisit.length > 0) {
         const v = this.toVisit.shift();
+        this.$set(this.toColor, this.index++, v);
+
         if (v === target) {
           return true;
         }
@@ -130,7 +132,6 @@ export default {
           if (!this.visited.has(u)) {
             this.toVisit.push(u);
             this.visited.add(u);
-            this.$set(this.toColor, this.index++, u);
           }
         }
       }
