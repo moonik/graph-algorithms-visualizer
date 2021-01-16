@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <button v-on:click="dfsSearch()">Click</button>
+    <button v-on:click="bfsSearch()">Click</button>
     <table class="table table-bordered">
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
@@ -20,22 +20,15 @@ export default {
   name: 'App',
   components: {
   },
+  created() {
+    for (let i = 0; i < 12; i++) {
+      this.graph.set(i, [0,1,2,3,4,5,6,7,8,9,10,11]);
+    }
+  },
   data() {
     return {
       visited: new Set(),
-      graph: [
-          [0,1,0,0,0,0,0,0,0,0,0,0],
-          [1,0,0,0,1,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,1,0,0],
-          [0,1,0,0,0,0,0,1,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,1,0,0,0,1,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0]],
+      graph: new Map(),
       rows: [0,1,2,3],
       cols: [[0,1,2], [3,4,5], [6,7,8], [9,10,11]],
       toColor: [],
@@ -49,16 +42,13 @@ export default {
       this.visited = new Set();
       this.toColor = [];
       this.index = 0;
-      let start = 3;
+      const start = 3;
+      const target = 7;
 
-      for (let v = start; v < this.graph.length; v++) {
-        if (!this.visited.has(v)) {
-          this.visited.add(v);
-          this.$set(this.toColor, this.index++, v);
-          if (this.dfs(v, 7)) {
-            return true;
-          }
-        }
+      this.trackNodeAndColor(start);
+      
+      if (this.dfs(start, target)) {
+        return true;
       }
     },
 
@@ -66,19 +56,65 @@ export default {
       if (v === target) {
         return true;
       }
-      for (let u = 0; u < this.graph[v].length; u++) {
-        if (!this.visited.has(u) && this.graph[v][u] !== 0) {
-          this.visited.add(u);
-          this.$set(this.toColor, this.index++, u);
-          if (this.dfs(u, target)) {
+
+      const edges = this.graph.get(parseInt(v));
+
+      for (const u in edges) {
+        let e = parseInt(u);
+        if (!this.visited.has(e)) {
+          this.trackNodeAndColor(e);
+          if (this.dfs(e, target)) {
             return true;
           }
         }
       }
     },
 
+    bfsSearch() {
+      this.clicked = true;
+      this.visited = new Set();
+      this.toVisit = [];
+      this.toColor = [];
+      this.index = 0;
+      const start = 3;
+      const target = 7;
+
+      this.toVisit.push(start);
+      this.trackNodeAndColor(start);
+
+      while (this.toVisit.length > 0) {
+        const v = this.toVisit.shift();
+        this.$set(this.toColor, this.index++, v);
+
+        if (v === target) {
+          return true;
+        }
+
+        for (const e in this.graph.get(v)) {
+          const u = parseInt(e);
+          if (!this.visited.has(u)) {
+            this.toVisit.push(u);
+            this.visited.add(u);
+          }
+        }
+      }
+    },
+
+    trackNodeAndColor(v) {
+      this.visited.add(v);
+      this.$set(this.toColor, this.index++, v);
+    },
+
     wasVisited(col) {
       return this.toColor.includes(col);
+    },
+
+    getVisitedStyle(col) {
+      const animationDelay = this.getDelay(col);
+      return {
+        '-webkit-animation-delay': animationDelay,
+        'animation-delay': animationDelay
+      }
     },
 
     getDelay(col) {
