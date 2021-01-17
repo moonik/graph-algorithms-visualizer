@@ -11,7 +11,10 @@
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
-            <div class="vertex visited" v-on:click="setTarget(col)" :style="setVisitedStyle(col)" v-if="started && wasVisited(col)">{{ getPathIndext(col) }}</div>
+            <div class="vertex visited" v-on:click="setTarget(col)" 
+            :style="setVisitedStyle(col)" v-if="started && wasVisited(col)"> 
+              {{ getPathIndex(col) }}
+            </div>
             <div class="vertex" v-on:click="setStart(col);" :style="setStartAndTargetStyle(col)" v-else> {{ col }} </div>
           </td>
         </tr>
@@ -101,8 +104,8 @@ export default {
     },
 
     resetStartAndTarget() {
-      this.setStart(-1);
-      this.setTarget(-1);
+      this.start = -1;
+      this.target = -1;
     },
 
     startSelected() {
@@ -159,7 +162,7 @@ export default {
       this.getPath(this.start, this.target);
     },
 
-    getPathIndext(col) {
+    getPathIndex(col) {
       return this.path.indexOf(col);
     },
 
@@ -216,6 +219,14 @@ export default {
             this.visited.add(u);
         }
       }
+    },
+
+    dijkstraSearch() {
+      this.reset();
+    },
+
+    dijkstra() {
+
     },
 
     getPath(start, target) {

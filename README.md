@@ -1,7 +1,7 @@
 ## This application provides visualization of graph searching algorithms such as:
- - Breadth-First-Search (BFS);
- - Depth-First-Search (BFS);
- - Dijkstra's algorithm;
+ - Breadth-First-Search (BFS)
+ - Depth-First-Search (BFS)
+ - Dijkstra's algorithm
 
 ## Project setup
 ```
