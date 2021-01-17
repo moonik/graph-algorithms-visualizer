@@ -2,20 +2,25 @@
   <div id="app">
     <h3 v-if="!startSelected()">Select starting point</h3>
     <h3 v-if="startSelected() && !targetSelected()">Select destination point</h3>
+
+    <input type="checkbox" id="destroyMode" v-model="destroyMode">
+    <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
     <h3 v-if="canStartSearching() && !started">Select one of the algorithms</h3>
     <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
+
     <button v-if="started" v-on:click="showPath()">Show path</button>
-    <button v-on:click="reset(); resetStartAndTarget()">Reset</button>
+    <button v-on:click="reset(); resetStartAndTarget(); resetFromDestroyMode()">Reset</button>
+
     <table class="table table-bordered">
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
-            <div class="vertex visited" v-on:click="setTarget(col)" 
-            :style="setVisitedStyle(col)" v-if="started && wasVisited(col)"> 
+            <div v-if="started && wasVisited(col)" class="vertex visited" v-on:click="selectNode(col)" 
+            :style="setVisitedStyle(col)"> 
               {{ getPathIndex(col) }}
             </div>
-            <div class="vertex" v-on:click="setStart(col);" :style="setStartAndTargetStyle(col)" v-else> {{ col }} </div>
+            <div v-else class="vertex" v-on:click="selectNode(col);" :style="setStartAndTargetStyle(col)"> {{ col }} </div>
           </td>
         </tr>
       </tbody>
@@ -41,6 +46,7 @@ export default {
       visited: new Set(),
       graph: new Map(),
       rows: 50,
+      colsInRow: 50,
       cols: [],
       traversed: [],
       started: false,
@@ -50,20 +56,21 @@ export default {
       target: -1,
       path: [],
       parents: new Map(),
+      destroyedNodes: [],
+      destroyMode: false,
     }
   },
 
   methods: {
     initTableRowsAndCols() {
-      const colsInRow = 50;
       let col = 0;
 
       for (let i = 0; i < this.rows; i++) {
-        let adj = [];
-        for (let j = 0; j < colsInRow; j++) {
-          adj.push(col++);
+        let tmp = [];
+        for (let j = 0; j < this.colsInRow; j++) {
+          tmp.push(col++);
         }
-        this.cols.push(adj);
+        this.cols.push(tmp);
       }
     },
 
@@ -91,7 +98,15 @@ export default {
     },
 
     canStartSearching() {
-      return this.start !== -1 && this.target !== -1; 
+      return this.startSelected() && this.targetSelected(); 
+    },
+
+    startSelected() {
+      return this.start !== -1;
+    },
+
+    targetSelected() {
+      return this.target !== -1;
     },
 
     reset() {
@@ -108,26 +123,25 @@ export default {
       this.target = -1;
     },
 
-    startSelected() {
-      return this.start !== -1;
+    resetFromDestroyMode() {
+      this.destroyedNodes = [];
+      this.destroyMode = false;
     },
 
-    targetSelected() {
-      return this.target !== -1;
-    },
-
-    setStart(v) {
-      if (this.start === -1) {
+    selectNode(v) {
+      if (this.destroyMode) {
+        this.$set(this.destroyedNodes, v, v);
+      } else if (this.start === -1) {
         this.start = v;
-      } else
-        this.setTarget(v);
-    },
-
-    setTarget(v) {
-      this.target = v;
+      } else {
+        this.target = v;
+      }
     },
 
     setVisitedStyle(col) {
+      if (this.destroyedNodes.includes(col)) {
+        return {'backgroundColor': 'red', 'color': 'red'};
+      }
       const delay = this.getDelay(col);
       if (this.path.includes(col)) {
         let style = {'backgroundColor': 'purple !important', 'color': 'white !important'};
@@ -147,6 +161,9 @@ export default {
     },
 
     setStartAndTargetStyle(col, delay) {
+      if (this.destroyedNodes.includes(col)) {
+        return {'backgroundColor': 'red', 'color': 'red'};
+      }
       if (col === this.start) {
         return {'-webkit-animation-delay': delay, 'animation-delay': delay, 'border': '2px solid black'};
       } else if (col === this.target) {
@@ -181,7 +198,7 @@ export default {
 
       for (const e in edges) {
         const u = parseInt(edges[e]);
-        if (!this.visited.has(u)) {
+        if (!this.visited.has(u) && !this.destroyedNodes.includes(u)) {
           this.parents.set(u, v);
           this.trackNodeAndColor(u);
           if (this.dfs(u, target)) {
@@ -213,7 +230,7 @@ export default {
     bfs(v, queue) {
       for (const e in this.graph.get(v)) {
         const u = parseInt(this.graph.get(v)[e]);
-        if (!this.visited.has(u)) {
+        if (!this.visited.has(u) && !this.destroyedNodes.includes(u)) {
             queue.push(u);
             this.parents.set(u, v);
             this.visited.add(u);
