@@ -3,14 +3,15 @@
     <h3 v-if="!startSelected()">Select starting point</h3>
     <h3 v-if="startSelected() && !targetSelected()">Select destination point</h3>
 
-    <input type="checkbox" id="destroyMode" v-model="destroyMode">
-    <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
     <h3 v-if="canStartSearching() && !started">Select one of the algorithms</h3>
     <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
 
     <button v-if="started" v-on:click="showPath()">Show path</button>
-    <button v-on:click="reset(); resetStartAndTarget(); resetFromDestroyMode()">Reset</button>
+    <button v-on:click="reset(); resetStartAndTarget();">Reset</button>
+    <button v-if="destroyedNodes.length > 0" v-on:click="resetFromDestroyMode()">Reset destroyed nodes</button>
+    <input type="checkbox" id="destroyMode" v-model="destroyMode">
+    <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
 
     <table class="table table-bordered">
       <tbody>
@@ -130,11 +131,19 @@ export default {
 
     selectNode(v) {
       if (this.destroyMode) {
-        this.$set(this.destroyedNodes, v, v);
+        if (this.destroyedNodes.includes(v)) {
+          this.$set(this.destroyedNodes, v, -1);
+        } else {
+          this.$set(this.destroyedNodes, v, v);
+        }
       } else if (this.start === -1) {
         this.start = v;
-      } else {
+      } else if (this.start === v) {
+        this.start = -1
+      } else if (this.target === -1) {
         this.target = v;
+      } else if (this.target === v) {
+        this.target = -1;
       }
     },
 
@@ -280,6 +289,10 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+button {
+  margin: 0.5%;
 }
 
 table {
