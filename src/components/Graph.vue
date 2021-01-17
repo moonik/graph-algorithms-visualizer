@@ -26,6 +26,7 @@ export default {
   components: {},
 
   created() {
+    this.initTableRowsAndCols();
     this.initGraph();
   },
 
@@ -33,13 +34,8 @@ export default {
     return {
       visited: new Set(),
       graph: new Map(),
-      rows: [0,1,2,3],
-      cols: [
-        [0,1,2],
-        [3,4,5],
-        [6,7,8],
-        [9,10,11]
-      ],
+      rows: 50,
+      cols: [],
       traversed: [],
       started: false,
       index: 0,
@@ -52,6 +48,42 @@ export default {
   },
 
   methods: {
+    initTableRowsAndCols() {
+      const colsInRow = 50;
+      let col = 0;
+
+      for (let i = 0; i < this.rows; i++) {
+        let adj = [];
+        for (let j = 0; j < colsInRow; j++) {
+          adj.push(col++);
+        }
+        this.cols.push(adj);
+      }
+    },
+
+    initGraph() {
+      for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols[r].length; c++) {
+          let adj = [];
+          const col = parseInt(this.cols[r][c]);
+
+          for (const i in this.neighbors) {
+            for (const j in this.neighbors) {
+              const v = parseInt(this.neighbors[i]) + r;
+              const u = parseInt(this.neighbors[j]) + c;
+
+              if (!(v === r && u === c)) {
+                if (v >= 0 && u >= 0 && v < this.cols.length && u < this.cols[v].length) {
+                  adj.push(this.cols[v][u]);
+                }
+              }
+            }
+          }
+          this.graph.set(col, adj);
+        }
+      }
+    },
+
     canStartSearching() {
       return this.start !== -1 && this.target !== -1; 
     },
@@ -119,30 +151,6 @@ export default {
 
     getPathIndext(col) {
       return this.path.indexOf(col);
-    },
-
-    initGraph() {
-      for (const iRow in this.rows) {
-        const row = parseInt(iRow);
-        for (const iColumn in this.cols[row]) {
-          let adj = [];
-          const col = parseInt(this.cols[row][iColumn]);
-
-          for (const i in this.neighbors) {
-            for (const j in this.neighbors) {
-              const r = parseInt(this.neighbors[i]) + parseInt(iRow);
-              const c = parseInt(this.neighbors[j]) + parseInt(iColumn);
-
-              if (!(r === iRow && c === iColumn)) {
-                if (r >= 0 && c >= 0 && r < this.cols.length && c < this.cols[r].length) {
-                  adj.push(this.cols[r][c]);
-                }
-              }
-            }
-          }
-          this.graph.set(col, adj);
-        }
-      }
     },
 
     dfsSearch() {
@@ -222,7 +230,7 @@ export default {
     },
 
     getDelay(col) {
-      return this.traversed.indexOf(col) / 2 + 's';
+      return this.traversed.indexOf(col) / 20 + 's';
     }
   }
 }
@@ -240,6 +248,7 @@ export default {
 
 table {
    border-collapse: collapse;
+   margin-top: 2%;
 }
 
 tr, td {
@@ -248,7 +257,8 @@ tr, td {
 
 td {
   border: 1px solid black;
-  width: 30%;
+  max-width: 30%;
+  min-width: 30%;
 }
 
 .vertex:hover {
