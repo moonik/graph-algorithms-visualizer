@@ -10,7 +10,7 @@
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
-            <div class="vertex visited" v-on:click="setTarget(col)" :style="setVisitedStyle(col)" v-if="started && wasVisited(col)">{{ col }}</div>
+            <div class="vertex visited" v-on:click="setTarget(col)" :style="setVisitedStyle(col)" v-if="started && wasVisited(col)">{{ getPathIndext(col) }}</div>
             <div class="vertex" v-on:click="setStart(col); setTarget(col)" :style="setStartAndTargetStyle(col)" v-else> {{ col }} </div>
           </td>
         </tr>
@@ -73,6 +73,10 @@ export default {
       }
     },
 
+    getPathIndext(col) {
+      return this.path.indexOf(col);
+    },
+
     reset() {
       this.started = !this.started;
       this.traversed = [];
@@ -105,13 +109,19 @@ export default {
 
     setVisitedStyle(col) {
       const delay = this.getDelay(col);
-      if (col === this.start) {
+      if (this.path.includes(col)) {
+        if (col === this.start) {
+          return {'backgroundColor': 'purple !important', 'color': 'white !important', 'border': '2px solid black'};
+        } else if (col === this.target) {
+          return {'backgroundColor': 'purple !important', 'color': 'white !important', 'border': '2px solid green'};
+        } else {
+          return {'backgroundColor': 'purple !important', 'color': 'white !important'};
+        }
+      } else if (col === this.start) {
         return this.setStartAndTargetStyle(col);
       } else if (col === this.target) {
         return this.setStartAndTargetStyle(col);
-      } else if (this.path.includes(col)) {
-        return {'backgroundColor': 'purple !important'};
-      } else {
+      }  else {
         return {'-webkit-animation-delay': delay, 'animation-delay': delay};
       }
     },
@@ -173,7 +183,6 @@ export default {
 
         this.bfs(v, queue);
       }
-      this.getPath(this.start, this.target);
     },
 
     bfs(v, queue) {
@@ -188,7 +197,8 @@ export default {
     },
 
     getPath(start, target) {
-        let parent = this.parents.get(target);
+      if (this.parents.size > 0) {
+        let parent = target;
         let i = 0;
 
         while (parent != start) {
@@ -196,6 +206,8 @@ export default {
             parent = this.parents.get(parent);
         }
         this.$set(this.path, i, start);
+        this.path.reverse();
+      }
     },
 
     trackNodeAndColor(v) {
@@ -229,7 +241,12 @@ table {
 }
 
 tr, td {
-  padding: 50px;
+  color: white;
+}
+
+td {
+  border: 1px solid black;
+  width: 30%;
 }
 
 .vertex:hover {
@@ -243,10 +260,12 @@ tr, td {
 @keyframes color-me-in {
   0% {
     background: orange;
+    color: orange;
   }
 
   100% {
     background: orange;
+    color: orange;
   }
 }
 </style>
