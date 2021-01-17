@@ -1,17 +1,18 @@
 <template>
   <div id="app">
-    <h3 v-if="start == -1">Select starting point</h3>
-    <h3 v-if="start != -1 && !target">Select destination point</h3>
+    <h3 v-if="!startSelected()">Select starting point</h3>
+    <h3 v-if="startSelected() && !targetSelected()">Select destination point</h3>
+    <h3 v-if="canStartSearching() && !started">Select one of the algorithms</h3>
     <button v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
-    <button v-on:click="showPath()">Show path</button>
+    <button v-if="started" v-on:click="showPath()">Show path</button>
     <button v-on:click="reset(); resetStartAndTarget()">Reset</button>
     <table class="table table-bordered">
       <tbody>
         <tr v-for="row in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
             <div class="vertex visited" v-on:click="setTarget(col)" :style="setVisitedStyle(col)" v-if="started && wasVisited(col)">{{ getPathIndext(col) }}</div>
-            <div class="vertex" v-on:click="setStart(col); setTarget(col)" :style="setStartAndTargetStyle(col)" v-else> {{ col }} </div>
+            <div class="vertex" v-on:click="setStart(col);" :style="setStartAndTargetStyle(col)" v-else> {{ col }} </div>
           </td>
         </tr>
       </tbody>
@@ -97,21 +98,28 @@ export default {
       this.parents = new Map();
     },
 
+    resetStartAndTarget() {
+      this.setStart(-1);
+      this.setTarget(-1);
+    },
+
+    startSelected() {
+      return this.start !== -1;
+    },
+
+    targetSelected() {
+      return this.target !== -1;
+    },
+
     setStart(v) {
       if (this.start === -1) {
         this.start = v;
-      }
+      } else
+        this.setTarget(v);
     },
 
     setTarget(v) {
-      if (this.start !== -1) {
-        this.target = v;
-      }
-    },
-
-    resetStartAndTarget() {
-      this.start = -1;
-      this.target = -1;
+      this.target = v;
     },
 
     setVisitedStyle(col) {
@@ -176,7 +184,6 @@ export default {
           }
         }
       }
-
       return false;
     },
 
@@ -194,7 +201,6 @@ export default {
         if (v === this.target) {
           break;
         }
-
         this.bfs(v, queue);
       }
     },
