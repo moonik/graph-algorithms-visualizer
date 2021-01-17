@@ -3,8 +3,8 @@
     <h3 v-if="!startSelected()">Select starting point</h3>
     <h3 v-if="startSelected() && !targetSelected()">Select destination point</h3>
     <h3 v-if="canStartSearching() && !started">Select one of the algorithms</h3>
-    <button v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
-    <button v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
+    <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
+    <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
     <button v-if="started" v-on:click="showPath()">Show path</button>
     <button v-on:click="reset(); resetStartAndTarget()">Reset</button>
     <table class="table table-bordered">
@@ -33,6 +33,8 @@ export default {
 
   data() {
     return {
+      dfsTitle: 'Depth-First-Search algorithm',
+      bfsTitle: 'Breadth First Search algorithm. Shows shortest path in an unweighted graph or graph with same weights',
       visited: new Set(),
       graph: new Map(),
       rows: 50,
