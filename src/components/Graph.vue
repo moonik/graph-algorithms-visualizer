@@ -23,8 +23,7 @@
 
 export default {
   name: 'Graph',
-  components: {
-  },
+  components: {},
 
   created() {
     this.initGraph();
@@ -35,7 +34,12 @@ export default {
       visited: new Set(),
       graph: new Map(),
       rows: [0,1,2,3],
-      cols: [[0,1,2], [3,4,5], [6,7,8], [9,10,11]],
+      cols: [
+        [0,1,2],
+        [3,4,5],
+        [6,7,8],
+        [9,10,11]
+      ],
       traversed: [],
       started: false,
       index: 0,
@@ -48,6 +52,75 @@ export default {
   },
 
   methods: {
+    canStartSearching() {
+      return this.start !== -1 && this.target !== -1; 
+    },
+
+    reset() {
+      this.started = !this.started;
+      this.traversed = [];
+      this.visited = new Set();
+      this.index = 0;
+      this.path = [];
+      this.parents = new Map();
+    },
+
+    setStart(v) {
+      if (this.start === -1) {
+        this.start = v;
+      }
+    },
+
+    setTarget(v) {
+      if (this.start !== -1) {
+        this.target = v;
+      }
+    },
+
+    resetStartAndTarget() {
+      this.start = -1;
+      this.target = -1;
+    },
+
+    setVisitedStyle(col) {
+      const delay = this.getDelay(col);
+      if (this.path.includes(col)) {
+        let style = {'backgroundColor': 'purple !important', 'color': 'white !important'};
+        if (col === this.start) {
+          style['border']= '2px solid black';
+        } else if (col === this.target) {
+          style['border'] = '2px solid green';
+        }
+        return style;
+      } else if (col === this.start) {
+        return this.setStartAndTargetStyle(col, delay);
+      } else if (col === this.target) {
+        return this.setStartAndTargetStyle(col, delay);
+      }  else {
+        return {'-webkit-animation-delay': delay, 'animation-delay': delay};
+      }
+    },
+
+    setStartAndTargetStyle(col, delay) {
+      if (col === this.start) {
+        return {'-webkit-animation-delay': delay, 'animation-delay': delay, 'border': '2px solid black'};
+      } else if (col === this.target) {
+        return {'-webkit-animation-delay': delay, 'animation-delay': delay, 'border' : '2px solid green'};
+      }
+    },
+
+    wasVisited(col) {
+      return this.traversed.includes(col);
+    },
+
+    showPath() {
+      this.getPath(this.start, this.target);
+    },
+
+    getPathIndext(col) {
+      return this.path.indexOf(col);
+    },
+
     initGraph() {
       for (const iRow in this.rows) {
         const row = parseInt(iRow);
@@ -67,76 +140,9 @@ export default {
               }
             }
           }
-          adj.sort((a, b) => a - b);
           this.graph.set(col, adj);
         }
       }
-    },
-
-    getPathIndext(col) {
-      return this.path.indexOf(col);
-    },
-
-    reset() {
-      this.started = !this.started;
-      this.traversed = [];
-      this.visited = new Set();
-      this.index = 0;
-      this.path = [];
-      this.parents = new Map();
-    },
-
-    resetStartAndTarget() {
-      this.start = -1;
-      this.target = -1;
-    },
-
-    canStartSearching() {
-      return this.start !== -1 && this.target !== -1; 
-    },
-
-    setStart(v) {
-      if (this.start === -1) {
-        this.start = v;
-      }
-    },
-
-    setTarget(v) {
-      if (this.start !== -1) {
-        this.target = v;
-      }
-    },
-
-    setVisitedStyle(col) {
-      const delay = this.getDelay(col);
-      if (this.path.includes(col)) {
-        if (col === this.start) {
-          return {'backgroundColor': 'purple !important', 'color': 'white !important', 'border': '2px solid black'};
-        } else if (col === this.target) {
-          return {'backgroundColor': 'purple !important', 'color': 'white !important', 'border': '2px solid green'};
-        } else {
-          return {'backgroundColor': 'purple !important', 'color': 'white !important'};
-        }
-      } else if (col === this.start) {
-        return this.setStartAndTargetStyle(col);
-      } else if (col === this.target) {
-        return this.setStartAndTargetStyle(col);
-      }  else {
-        return {'-webkit-animation-delay': delay, 'animation-delay': delay};
-      }
-    },
-
-    setStartAndTargetStyle(col) {
-      const delay = this.getDelay(col);
-      if (col === this.start) {
-        return {'-webkit-animation-delay': delay, 'animation-delay': delay, 'border': '2px solid black'};
-      } else if (col === this.target) {
-        return {'-webkit-animation-delay': delay, 'animation-delay': delay, 'border' : '2px solid green'};
-      }
-    },
-
-    showPath() {
-      this.getPath(this.start, this.target);
     },
 
     dfsSearch() {
@@ -213,10 +219,6 @@ export default {
     trackNodeAndColor(v) {
       this.visited.add(v);
       this.$set(this.traversed, this.index++, v);
-    },
-
-    wasVisited(col) {
-      return this.traversed.includes(col);
     },
 
     getDelay(col) {
