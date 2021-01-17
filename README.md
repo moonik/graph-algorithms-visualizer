@@ -1,4 +1,7 @@
-## This application provides visualization of graph searching algorithms such as:
+## This application provides visualization of graph searching algorithms. 
+## [DEMO](https://moonik.github.io/graph-algorithms-visualizer/)
+
+## Included algorithms:
  - Breadth-First-Search (BFS)
  - Depth-First-Search (BFS)
  - Dijkstra's algorithm
