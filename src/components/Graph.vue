@@ -111,7 +111,7 @@ export default {
     },
 
     reset() {
-      this.started = !this.started;
+      this.started = false;
       this.traversed = [];
       this.visited = new Set();
       this.index = 0;
@@ -194,6 +194,7 @@ export default {
 
     dfsSearch() {
       this.reset();
+      this.started = true;
       this.trackNodeAndColor(this.start);
       this.dfs(this.start, this.target);
     },
@@ -220,6 +221,7 @@ export default {
 
     bfsSearch() {
       this.reset();
+      this.started = true;
       let queue = [];
 
       queue.push(this.start);
@@ -249,6 +251,7 @@ export default {
 
     dijkstraSearch() {
       this.reset();
+      this.started = true;
     },
 
     dijkstra() {
