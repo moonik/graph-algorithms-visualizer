@@ -13,6 +13,9 @@
     <input type="checkbox" id="destroyMode" v-model="destroyMode">
     <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
 
+    <input type="checkbox" id="allowDiagonalSearch" v-model="allowDiagonalSearch" v-on:change="toggleDiagonalSearch()">
+    <label for="allowDiagonalSearch" title="Turning this on allows to search path also diagonally">Turn on diagonal search</label>
+
     <table class="table table-bordered">
       <tbody>
         <tr v-for="(r, row) in rows" v-bind:key="row">
@@ -59,6 +62,7 @@ export default {
       parents: new Map(),
       destroyedNodes: [],
       destroyMode: false,
+      allowDiagonalSearch: false,
     }
   },
 
@@ -100,10 +104,22 @@ export default {
       }
     },
 
-    isValidNeighbor(neighborRow, neighborCol) {
-      return neighborRow !== neighborCol &&
-        !(neighborRow === 1 && neighborCol === -1) &&
-        !(neighborRow === -1 && neighborCol === 1);
+    isValidNeighbor(i, j) {
+      if (i === 0 && j === 0) {
+        return false;
+      } else if (this.isDiagonal(i, j)) {
+        return this.allowDiagonalSearch;
+      } else {
+        return true;
+      }
+    },
+
+    isDiagonal(i, j) {
+      return i === j || (i === 1 && j === -1) || (i === -1 && j === 1);
+    },
+
+    toggleDiagonalSearch() {
+      this.initGraph();
     },
 
     canStartSearching() {
@@ -286,7 +302,7 @@ export default {
     },
 
     getDelay(col) {
-      return this.traversed.indexOf(col) / 20 + 's';
+      return this.traversed.indexOf(col) * 2 + 'ms';
     }
   }
 }
@@ -316,9 +332,9 @@ tr, td {
 }
 
 td {
-  border: 1px solid black;
-  max-width: 30%;
-  min-width: 30%;
+  border: 1.5px solid black;
+  max-width: 35px;
+  min-width: 35px;
 }
 
 .vertex:hover {
