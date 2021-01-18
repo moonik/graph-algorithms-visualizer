@@ -10,6 +10,7 @@
     <button v-if="started" v-on:click="showPath()">Show path</button>
     <button v-on:click="reset(); resetStartAndTarget();">Reset</button>
     <button v-if="destroyedNodes.length > 0" v-on:click="resetFromDestroyMode()">Reset destroyed nodes</button>
+    <br/>
     <input type="checkbox" id="destroyMode" v-model="destroyMode">
     <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
 
@@ -318,7 +319,7 @@ export default {
   margin-top: 60px;
 }
 
-button {
+button, input {
   margin: 0.5%;
 }
 
