@@ -6,18 +6,20 @@
 
     <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
-
-    <button v-if="started" v-on:click="showPath()">Show path</button>
-    <button v-on:click="reset(); resetStartAndTarget();">Reset</button>
-    <button v-if="destroyedNodes.length > 0" v-on:click="resetFromDestroyMode()">Reset destroyed nodes</button>
-
-    <br/>
     
+    <br/>
+
     <input type="checkbox" id="destroyMode" v-model="destroyMode">
     <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
 
     <input type="checkbox" id="allowDiagonalSearch" v-model="allowDiagonalSearch" v-on:change="toggleDiagonalSearch()">
     <label for="allowDiagonalSearch" title="Turning this on allows to search path also diagonally">Turn on diagonal search</label>
+
+    <br/>
+
+    <button v-if="started" v-on:click="showPath()">Show path</button>
+    <button v-on:click="reset(); resetStartAndTarget();">Reset</button>
+    <button v-on:click="resetFromDestroyMode()">Reset destroyed nodes</button>
 
     <table class="table table-bordered">
       <tbody>
@@ -63,7 +65,7 @@ export default {
       target: -1,
       path: [],
       parents: new Map(),
-      destroyedNodes: [],
+      destroyedNodes: {},
       destroyMode: false,
       allowDiagonalSearch: false,
     }
@@ -157,16 +159,16 @@ export default {
     },
 
     resetFromDestroyMode() {
-      this.destroyedNodes = [];
+      this.destroyedNodes = {};
       this.destroyMode = false;
     },
 
     selectNode(v) {
       if (this.destroyMode) {
-        if (this.destroyedNodes.includes(v)) {
-          this.$set(this.destroyedNodes, v, -1);
+        if (this.destroyedNodes[v]) {
+          this.$set(this.destroyedNodes, v, false);
         } else {
-          this.$set(this.destroyedNodes, v, v);
+          this.$set(this.destroyedNodes, v, true);
         }
       } else if (this.start === -1) {
         this.start = v;
@@ -180,7 +182,7 @@ export default {
     },
 
     setVisitedStyle(col) {
-      if (this.destroyedNodes.includes(col)) {
+      if (this.destroyedNodes[col]) {
         return {'backgroundColor': 'red', 'color': 'red'};
       }
       const delay = this.getDelay(col);
@@ -201,8 +203,12 @@ export default {
       }
     },
 
+    getDelay(col) {
+      return this.traversed.indexOf(col) * 2 + 'ms';
+    },
+
     setStartAndTargetStyle(col, delay) {
-      if (this.destroyedNodes.includes(col)) {
+      if (this.destroyedNodes[col]) {
         return {'backgroundColor': 'red', 'color': 'red'};
       }
       if (col === this.start) {
@@ -240,7 +246,7 @@ export default {
 
       for (const e in edges) {
         const u = parseInt(edges[e]);
-        if (!this.visited.has(u) && !this.destroyedNodes.includes(u)) {
+        if (!this.visited.has(u) && !this.destroyedNodes[u]) {
           this.parents.set(u, v);
           this.trackNodeAndColor(u);
           if (this.dfs(u, target)) {
@@ -273,7 +279,7 @@ export default {
     bfs(v, queue) {
       for (const e in this.graph.get(v)) {
         const u = parseInt(this.graph.get(v)[e]);
-        if (!this.visited.has(u) && !this.destroyedNodes.includes(u)) {
+        if (!this.visited.has(u) && !this.destroyedNodes[u]) {
             queue.push(u);
             this.parents.set(u, v);
             this.visited.add(u);
@@ -284,6 +290,7 @@ export default {
     dijkstraSearch() {
       this.reset();
       this.started = true;
+
     },
 
     dijkstra() {
@@ -308,10 +315,6 @@ export default {
       this.visited.add(v);
       this.$set(this.traversed, this.index++, v);
     },
-
-    getDelay(col) {
-      return this.traversed.indexOf(col) * 2 + 'ms';
-    }
   }
 }
 </script>
