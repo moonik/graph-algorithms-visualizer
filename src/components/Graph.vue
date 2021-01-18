@@ -15,7 +15,7 @@
 
     <table class="table table-bordered">
       <tbody>
-        <tr v-for="row in rows" v-bind:key="row">
+        <tr v-for="(r, row) in rows" v-bind:key="row">
           <td v-for="col in cols[row]" v-bind:key="col">
             <div v-if="started && wasVisited(col)" class="vertex visited" v-on:click="selectNode(col)" 
             :style="setVisitedStyle(col)"> 
@@ -79,23 +79,31 @@ export default {
       for (let r = 0; r < this.rows; r++) {
         for (let c = 0; c < this.cols[r].length; c++) {
           let adj = [];
-          const col = parseInt(this.cols[r][c]);
+          const vertex = parseInt(this.cols[r][c]);
 
           for (const i in this.neighbors) {
             for (const j in this.neighbors) {
-              const v = parseInt(this.neighbors[i]) + r;
-              const u = parseInt(this.neighbors[j]) + c;
+              const neighborRow = parseInt(this.neighbors[i]);
+              const neighborCol = parseInt(this.neighbors[j]);
+              const v = neighborRow + r;
+              const u = neighborCol + c;
 
-              if (!(v === r && u === c)) {
+              if (this.isValidNeighbor(neighborRow, neighborCol)) {
                 if (v >= 0 && u >= 0 && v < this.cols.length && u < this.cols[v].length) {
                   adj.push(this.cols[v][u]);
                 }
               }
             }
           }
-          this.graph.set(col, adj);
+          this.graph.set(vertex, adj);
         }
       }
+    },
+
+    isValidNeighbor(neighborRow, neighborCol) {
+      return neighborRow !== neighborCol &&
+        !(neighborRow === 1 && neighborCol === -1) &&
+        !(neighborRow === -1 && neighborCol === 1);
     },
 
     canStartSearching() {
