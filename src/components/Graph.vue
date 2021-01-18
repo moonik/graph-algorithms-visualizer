@@ -1,16 +1,18 @@
 <template>
   <div id="app">
-    <h3 v-if="!startSelected()">Select starting point</h3>
-    <h3 v-if="startSelected() && !targetSelected()">Select destination point</h3>
+    <h1 v-if="!startSelected()">Select starting point</h1>
+    <h1 v-if="startSelected() && !targetSelected()">Select destination point</h1>
+    <h1 v-if="canStartSearching() && !started">Select one of the algorithms</h1>
 
-    <h3 v-if="canStartSearching() && !started">Select one of the algorithms</h3>
     <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
 
     <button v-if="started" v-on:click="showPath()">Show path</button>
     <button v-on:click="reset(); resetStartAndTarget();">Reset</button>
     <button v-if="destroyedNodes.length > 0" v-on:click="resetFromDestroyMode()">Reset destroyed nodes</button>
+
     <br/>
+    
     <input type="checkbox" id="destroyMode" v-model="destroyMode">
     <label for="destroyMode" title="Turning this on allows to make nodes not available for traversing">Destroy nodes</label>
 
@@ -83,26 +85,31 @@ export default {
     initGraph() {
       for (let r = 0; r < this.rows; r++) {
         for (let c = 0; c < this.cols[r].length; c++) {
-          let adj = [];
           const vertex = parseInt(this.cols[r][c]);
-
-          for (const i in this.neighbors) {
-            for (const j in this.neighbors) {
-              const neighborRow = parseInt(this.neighbors[i]);
-              const neighborCol = parseInt(this.neighbors[j]);
-              const v = neighborRow + r;
-              const u = neighborCol + c;
-
-              if (this.isValidNeighbor(neighborRow, neighborCol)) {
-                if (v >= 0 && u >= 0 && v < this.cols.length && u < this.cols[v].length) {
-                  adj.push(this.cols[v][u]);
-                }
-              }
-            }
-          }
-          this.graph.set(vertex, adj);
+          this.graph.set(vertex, this.getNeighbors(r, c));
         }
       }
+    },
+
+    getNeighbors(r, c) {
+      let adj = [];
+
+      for (const i in this.neighbors) {
+        for (const j in this.neighbors) {
+          const neighborRow = parseInt(this.neighbors[i]);
+          const neighborCol = parseInt(this.neighbors[j]);
+
+          const v = neighborRow + r;
+          const u = neighborCol + c
+          
+          if (this.isValidNeighbor(neighborRow, neighborCol)) {
+            if (v >= 0 && u >= 0 && v < this.cols.length && u < this.cols[v].length) {
+              adj.push(this.cols[v][u]);
+            }
+          }
+        }
+      }
+      return adj;
     },
 
     isValidNeighbor(i, j) {
@@ -116,7 +123,7 @@ export default {
     },
 
     isDiagonal(i, j) {
-      return i === j || (i === 1 && j === -1) || (i === -1 && j === 1);
+      return Math.abs(i) === Math.abs(j);
     },
 
     toggleDiagonalSearch() {
