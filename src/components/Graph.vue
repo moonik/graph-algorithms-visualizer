@@ -340,7 +340,7 @@ export default {
       for (const e in this.graph.get(v)) {
         const u = parseInt(this.graph.get(v)[e]);
         const uWeight = this.graphWeights.get(v)[u];
-        if (!this.visited.has(u)) {
+        if (!this.visited.has(u) && !this.destroyedNodes[u]) {
           if (weights[u] > this.MAX_WEIGHT || weights[u] > uWeight + weights[v]) {
             weights[u] = uWeight + weights[v];
             queue.add(u, uWeight);
