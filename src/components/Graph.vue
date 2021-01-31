@@ -6,6 +6,7 @@
 
     <button :title="`${ dfsTitle }`" v-if="canStartSearching()" v-on:click="dfsSearch()">DFS</button>
     <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="bfsSearch()">BFS</button>
+    <button :title="`${ bfsTitle }`" v-if="canStartSearching()" v-on:click="dijkstraSearch()">Dijkstra</button>
     
     <br/>
 
@@ -38,6 +39,7 @@
 </template>
 
 <script>
+import PrioerityQueue from '../datastructers/priorityQueue';
 
 export default {
   name: 'Graph',
@@ -54,6 +56,7 @@ export default {
       bfsTitle: 'Breadth First Search algorithm. Shows shortest path in an unweighted graph or graph with same weights',
       visited: new Set(),
       graph: new Map(),
+      graphWeights: new Map(),
       rows: 50,
       colsInRow: 50,
       cols: [],
@@ -68,6 +71,7 @@ export default {
       destroyedNodes: {},
       destroyMode: false,
       allowDiagonalSearch: false,
+      MAX_WEIGHT: 100,
     }
   },
 
@@ -88,12 +92,12 @@ export default {
       for (let r = 0; r < this.rows; r++) {
         for (let c = 0; c < this.cols[r].length; c++) {
           const vertex = parseInt(this.cols[r][c]);
-          this.graph.set(vertex, this.getNeighbors(r, c));
+          this.graph.set(vertex, this.getNeighbors(vertex, r, c));
         }
       }
     },
 
-    getNeighbors(r, c) {
+    getNeighbors(vertex, r, c) {
       let adj = [];
 
       for (const i in this.neighbors) {
@@ -107,6 +111,14 @@ export default {
           if (this.isValidNeighbor(neighborRow, neighborCol)) {
             if (v >= 0 && u >= 0 && v < this.cols.length && u < this.cols[v].length) {
               adj.push(this.cols[v][u]);
+              let weights = this.graphWeights.get(vertex);
+
+              if (!weights) {
+                weights = [];
+                this.graphWeights.set(vertex, weights);
+              }
+              
+              weights[this.cols[v][u]] = this.getRandomWeight();
             }
           }
         }
@@ -127,6 +139,10 @@ export default {
     isDiagonal(i, j) {
       return Math.abs(i) === Math.abs(j);
     },
+
+    getRandomWeight() {
+      return Math.floor(Math.random() * this.MAX_WEIGHT);
+  },
 
     toggleDiagonalSearch() {
       this.initGraph();
@@ -290,11 +306,49 @@ export default {
     dijkstraSearch() {
       this.reset();
       this.started = true;
+      let queue = PrioerityQueue;
+      queue.reset();
+      let weights = this.initWeights();
+      queue.add(this.start, 0);
+      weights[this.start] = 0;
+      this.visited.add(this.start);
 
+      while (!queue.isEmpty()) {
+        let v = queue.remove().vertex;
+
+        this.$set(this.traversed, this.index++, v);
+
+        if (v === this.target) {
+          break;
+        }
+
+        this.dijkstra(v, queue, weights);
+      }
     },
 
-    dijkstra() {
+    initWeights() {
+      let weights = [];
 
+      for (let i = 0; i < this.graph.size; i++) {
+        weights.push(this.MAX_WEIGHT + 1);
+      }
+
+      return weights;
+    },
+
+    dijkstra(v, queue, weights) {
+      for (const e in this.graph.get(v)) {
+        const u = parseInt(this.graph.get(v)[e]);
+        const uWeight = this.graphWeights.get(v)[u];
+        if (!this.visited.has(u)) {
+          if (weights[u] > this.MAX_WEIGHT || weights[u] > uWeight + weights[v]) {
+            weights[u] = uWeight + weights[v];
+            queue.add(u, uWeight);
+            this.parents.set(u, v);
+            this.visited.add(u);
+          }
+        }
+      }
     },
 
     getPath(start, target) {
